@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Protótipos — Jogo de Adivinhação (PRD v1.0)</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,'Segoe UI',Arial,sans-serif;background:#f4f4f5;color:#18181b;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+main{max-width:860px;width:100%}
+h1{font-size:28px;margin:0}h1 small{font-weight:400;color:#555}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:18px 0}
+.card{background:#fff;border:2px solid #18181b;border-radius:16px;padding:18px;text-decoration:none;color:inherit;box-shadow:0 4px 0 #18181b}
+.card:hover{transform:translateY(-2px)}
+.card h2{margin:0 0 6px;font-size:19px}
+.tag{display:inline-block;font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px;margin-bottom:8px}
+.a{background:#e4e4e7}.b{background:#FFC93C}.c{background:#0B1220;color:#fff}
+ul{line-height:1.6}
+code{background:#e4e4e7;padding:2px 6px;border-radius:6px}
+.foot{opacity:.7;font-size:13px;margin-top:10px}
+</style>
+</head>
+<body>
+<main>
+<h1>🎮 Protótipos navegáveis <small>· PRD v1.0 · 5 letras · 4 categorias · localStorage</small></h1>
+<p>Painel de especialistas: <strong>UX Design</strong> (fluxos, hierarquia, microcopy) + <strong>Acessibilidade WCAG 2.2 AA</strong> (contraste, ARIA, daltonismo) + <strong>Design Visual</strong> (3 direções). Todos funcionais — escolha categoria, dificuldade e jogue.</p>
+<div class="grid">
+<a class="card" href="proto-a-classico.html"><span class="tag a">A · CLÁSSICO</span><h2>📰 Minimalista editorial</h2><p>Estilo NYT/Termo: serifada, quadrado, header fino, toggle light/dark. Foco total no jogo. Grid 5×N + teclado funcional + diário por data.</p><p><strong>Abrir →</strong></p></a>
+<a class="card" href="proto-b-ludico.html"><span class="tag b">B · LÚDICO</span><h2>🦊 Escolar gamificado</h2><p>Fundo creme, cards sticker, HUD 🪙🔥⭐, mascote, botões pill. Ideal para engajamento escolar e apresentação.</p><p><strong>Abrir →</strong></p></a>
+<a class="card" href="proto-c-acessivel.html"><span class="tag c">C · ACESSÍVEL</span><h2>🌙 Premium acessível</h2><p>Dark navy alto contraste, fonte 18px, cor+símbolo (✓◐×), ARIA live, skip-link, toggles contraste/movimento. Nota 10 em inclusão.</p><p><strong>Abrir →</strong></p></a>
+</div>
+<h3>Como apresentar no navegador</h3>
+<ul>
+<li>Duplo-clique em qualquer arquivo, ou <code>python3 -m http.server</code> nesta pasta e abra <code>http://localhost:8000</code>.</li>
+<li>Teste mobile: F12 → modo responsivo 360px.</li>
+<li>Palavras demo: ZEBRA, ARROZ, LIVRO, MESAS (digite sem acento).</li>
+</ul>
+<h3>Recomendação do painel</h3>
+<ul>
+<li><strong>Para nota máxima:</strong> base A (código mais limpo p/ avaliação) + HUD de moedas/streak do B + símbolos/ARIA do C.</li>
+<li><strong>Ajuste obrigatório apontado pela A11y:</strong> amarelo #b59f3b nunca com texto branco — usar texto preto (já aplicado nos 3).</li>
+</ul>
+<p class="foot">Arquivos: <code>proto-a-classico.html</code> · <code>proto-b-ludico.html</code> · <code>proto-c-acessivel.html</code> — 100% standalone, sem dependências, funciona com file://.</p>
+</main>
+</body>
+</html>

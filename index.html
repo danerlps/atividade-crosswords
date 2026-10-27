@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Termo C — Jogo de Adivinhação 5 Letras</title>
+<meta name="description" content="Jogo casual moderno de adivinhação de palavras de 5 letras em PT-BR, com temas modernos, modo diário, acessibilidade completa e offline.">
+<!-- Google Fonts modernos com fallback seguro -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<a class="skip" href="#kb">Pular para o teclado</a>
+<div id="live" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<header>
+  <div class="brand">
+    <span class="brand-badge" aria-hidden="true">5L</span>
+    <h1>TERMO · C</h1>
+  </div>
+  <div class="hud" aria-label="Progresso do jogador">
+    <span class="pill coin-pill" title="Moedas ganhas"><span class="pill-icon" aria-hidden="true">🪙</span> <span id="coinCount">0</span></span>
+    <span class="pill streak-pill" title="Sequência diária de vitórias"><span class="pill-icon" aria-hidden="true">🔥</span> <span id="streakCount">0</span></span>
+  </div>
+  <div class="toggles">
+    <button id="hcBtn" aria-pressed="false" title="Alternar modo de alto contraste para acessibilidade">👁️ Alto contraste</button>
+    <button id="moBtn" aria-pressed="false" title="Alternar animações visuais">🎬 Sem animação</button>
+  </div>
+</header>
+
+<main>
+  <!-- TELA INICIAL / SETUP -->
+  <section id="setup" aria-labelledby="setupTitle">
+    <h2 id="setupTitle" style="position:absolute;left:-9999px">Configurar partida</h2>
+    
+    <div class="steps-bar" aria-label="Etapas de configuração">
+      <div class="step-chip"><span class="chip-num">1</span> <span>Modo</span></div>
+      <div class="step-chip"><span class="chip-num">2</span> <span>Categoria</span></div>
+      <div class="step-chip"><span class="chip-num">3</span> <span>Nível</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <span class="step-tag">Etapa 1</span>
+        <h2>Modo de Jogo</h2>
+      </div>
+      <div class="opts" id="modos">
+        <button data-v="diario" aria-pressed="true">☀️ Diário (1 por dia)</button>
+        <button data-v="livre" aria-pressed="false">🎮 Livre (Ilimitado)</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <span class="step-tag">Etapa 2</span>
+        <h2>Categoria Temática</h2>
+      </div>
+      <div class="opts" id="cats">
+        <button data-v="animais" aria-pressed="true">🐯 Animais</button>
+        <button data-v="comidas" aria-pressed="false">🍕 Comidas</button>
+        <button data-v="escola" aria-pressed="false">📚 Escola</button>
+        <button data-v="objetos" aria-pressed="false">🪑 Objetos</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <span class="step-tag">Etapa 3</span>
+        <h2>Nível de Dificuldade</h2>
+      </div>
+      <div class="opts" id="difs">
+        <button data-v="8" aria-pressed="false">Fácil · 8 tentativas</button>
+        <button data-v="6" aria-pressed="true">Médio · 6 tentativas</button>
+        <button data-v="4" aria-pressed="false">Difícil · 4 tentativas</button>
+      </div>
+    </div>
+
+    <div class="card theme-card">
+      <div class="card-head">
+        <span class="step-tag">Personalização</span>
+        <h2>Temas Visuais & Loja 🪙</h2>
+      </div>
+      <div id="themeStore" role="group" aria-label="Seletor e loja de temas visuais"></div>
+      <p class="muted">⚡ <strong>Cyberpunk</strong>, 🌙 <strong>Midnight</strong> e ☀️ <strong>Claro</strong> liberados de início! 👁️ Alto contraste grátis. Ganhe moedas vencendo partidas para liberar temas cosméticos.</p>
+    </div>
+
+    <button class="cta" id="play">Começar partida</button>
+    <div class="how-wrapper">
+      <button id="how" class="linklike" aria-label="Instruções de como jogar o Termo">Como funciona o jogo? Verde ✓ = certa · Laranja ◐ = outra posição · Cinza × = não tem</button>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <span class="step-tag">Desempenho</span>
+        <h2>Estatísticas</h2>
+      </div>
+      <div id="statsBox"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <span class="step-tag">Registro</span>
+        <h2>Histórico (últimas 10)</h2>
+      </div>
+      <div id="histBox"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <span class="step-tag">Educador / P2</span>
+        <h2>Painel do Professor</h2>
+      </div>
+      <p class="muted" id="newWordHelp">Adicionar nova palavra de 5 letras ao banco local (modo Livre). Salva em <code>termo:custom</code>. O modo Diário utiliza o banco estático para manter a palavra igual para todos os jogadores.</p>
+      <div class="prof">
+        <input id="newWord" maxlength="5" placeholder="Ex: SABER" aria-label="Nova palavra de 5 letras" aria-describedby="newWordHelp" autocomplete="off" autocapitalize="characters">
+        <select id="newCat" aria-label="Categoria da nova palavra">
+          <option value="animais">Animais</option>
+          <option value="comidas">Comidas</option>
+          <option value="escola">Escola</option>
+          <option value="objetos">Objetos</option>
+        </select>
+        <button id="addWordBtn">Adicionar Palavra</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <span class="step-tag">Gerenciamento</span>
+        <h2>Dados Locais</h2>
+      </div>
+      <button class="ghost" id="wipeBtn">Redefinir dados locais (demo)</button>
+    </div>
+  </section>
+
+  <!-- TELA DO JOGO -->
+  <section id="game" hidden aria-labelledby="counter">
+    <div class="game-header">
+      <p id="counter" tabindex="-1">Tentativa 1 de 6</p>
+    </div>
+    <div class="legend" aria-hidden="true">
+      <span class="badge badge-correct">✓ Lugar certo</span>
+      <span class="badge badge-present">◐ Outra posição</span>
+      <span class="badge badge-absent">× Não tem</span>
+    </div>
+    <p class="muted game-tip">Digite sem acento (A = Á Ã Â, E = É Ê, C = Ç). Exibimos com os acentos oficiais.</p>
+    <div id="toast" role="alert"></div>
+    <div id="board" role="group" aria-label="Tabuleiro de tentativas"></div>
+    <div id="kb" aria-label="Teclado virtual do jogo" tabindex="-1"></div>
+    <div class="game-actions">
+      <button class="ghost" id="quitBtn">Desistir / Voltar ao menu</button>
+    </div>
+  </section>
+
+  <!-- MODAL DE FIM DE PARTIDA -->
+  <section id="end" role="dialog" aria-modal="true" aria-labelledby="endTitle" hidden></section>
+</main>
+
+<footer>
+  <p>Termo C Moderno · HTML + CSS + JS Puro · 100% Offline e compatível com <code>file://</code> · WCAG 2.2 AA</p>
+</footer>
+
+<script src="js/words.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/game.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>

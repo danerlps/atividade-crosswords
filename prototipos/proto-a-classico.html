@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Protótipo A — Clássico Minimalista</title>
+<style>
+:root{--bg:#fff;--ink:#1a1a1b;--border:#d3d6da;--key:#d3d6da;--correct:#6aaa64;--present:#c9b458;--absent:#787c7e}
+[data-theme=dark]{--bg:#121213;--ink:#fff;--border:#3a3a3c;--key:#818384}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+header{width:100%;max-width:500px;display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border)}
+header h1{font-family:Georgia,'Times New Roman',serif;font-size:24px;margin:0;letter-spacing:.02em}
+header small{font-family:monospace;font-size:11px;opacity:.7}
+button{font:inherit;cursor:pointer}
+.setup{width:100%;max-width:500px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.setup label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+select,.seg{display:flex;gap:6px}
+select{padding:10px;font-size:16px;background:var(--bg);color:var(--ink);border:2px solid var(--border)}
+.seg button{flex:1;padding:10px;border:2px solid var(--border);background:transparent;color:var(--ink);font-weight:700}
+.seg button.on{background:var(--ink);color:var(--bg)}
+.cta{padding:14px;background:var(--ink);color:var(--bg);border:0;font-weight:800;font-size:16px}
+#status{font-size:13px;font-family:monospace;text-align:center;min-height:18px}
+#board{display:flex;flex-direction:column;gap:5px;align-items:center;margin:8px 0}
+.row{display:flex;gap:5px}
+.cell{width:58px;height:58px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;font-weight:700;font-size:32px;text-transform:uppercase}
+.cell.filled{border-color:#878a8c}.cell.correct{background:var(--correct);border-color:var(--correct);color:#fff}.cell.present{background:var(--present);border-color:var(--present);color:#fff}.cell.absent{background:var(--absent);border-color:var(--absent);color:#fff}
+.cell.pop{animation:pop .1s}@keyframes pop{50%{transform:scale(1.07)}}
+#kb{display:flex;flex-direction:column;gap:6px;width:100%;max-width:500px;padding:8px 8px 16px}
+.krow{display:flex;gap:5px;justify-content:center}
+.key{min-width:30px;height:54px;flex:1;border:0;border-radius:4px;background:var(--key);color:var(--ink);font-weight:700;font-size:13px;touch-action:manipulation}
+.key.wide{flex:1.6}.key.correct{background:var(--correct);color:#fff}.key.present{background:var(--present);color:#fff}.key.absent{background:var(--absent);color:#fff}
+#toast{position:fixed;top:12px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;font-weight:700;font-size:14px;display:none;z-index:10}
+#end{display:none;width:100%;max-width:500px;padding:20px;text-align:center;border-top:1px solid var(--border)}
+#end h2{font-family:Georgia,serif;margin:8px 0}
+.themebtn{background:transparent;border:1px solid var(--border);color:var(--ink);padding:6px 10px;font-size:12px}
+@media(max-width:380px){.cell{width:52px;height:52px;font-size:28px}}
+</style>
+</head>
+<body>
+<div id="toast" role="alert"></div>
+<header><h1>TERMO <small>· A / clássico</small></h1><button class="themebtn" id="themeBtn">◐ tema</button></header>
+<div class="setup" id="setup">
+  <label>Modo</label>
+  <div class="seg" id="segModo"><button data-v="diario" class="on">Diário</button><button data-v="livre">Livre</button></div>
+  <label>Categoria</label>
+  <select id="cat"><option value="animais">Animais</option><option value="comidas">Comidas</option><option value="escola">Escola</option><option value="objetos">Objetos</option></select>
+  <label>Dificuldade</label>
+  <div class="seg" id="segDif"><button data-v="8">Fácil · 8</button><button data-v="6" class="on">Médio · 6</button><button data-v="4">Difícil · 4</button></div>
+  <button class="cta" id="play">JOGAR</button>
+  <small style="opacity:.6">Mockup funcional — palavra do dia por data (mulberry32). Digite sem acento.</small>
+</div>
+<div id="status" aria-live="polite"></div>
+<div id="board"></div>
+<div id="kb" hidden></div>
+<div id="end"></div>
+<script>
+const WORDS={animais:["ZEBRA","TIGRE","CORVO","CABRA","OVELH"],comidas:["ARROZ","FEIJA","PIZZA","BOLO","FRUTA"],escola:["LIVRO","CANET","QUADR","PROVA","ALUNO"],objetos:["MESAS","CADEI","PORTA","JANELA".slice(0,5),"VASO"]};
+WORDS.objetos=["MESAS","CADEI","PORTA","RELÓGIO".normalize("NFD").replace(/[\u0300-\u036f]/g,"").slice(0,5),"VASOS"];
+const VALID=new Set(Object.values(WORDS).flat().concat(["TERMO","AUREO","IDEIA","SAGAZ","TROPA","GRITO","PLANO","FESTA"]));
+let secret="",tries=6,row=0,col=0,grid=[],mode="diario",over=false;
+const $=s=>document.querySelector(s);
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function pickSecret(cat,md){const l=WORDS[cat];if(md==="diario"){const d=new Date();const seed=d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();return l[Math.floor(mulberry32(seed)()*l.length)]}return l[Math.floor(Math.random()*l.length)]}
+function toast(m){const t=$("#toast");t.textContent=m;t.style.display="block";clearTimeout(t._h);t._h=setTimeout(()=>t.style.display="none",2000)}
+function segWire(id,cb){$(id).querySelectorAll("button").forEach(b=>b.onclick=()=>{$(id).querySelectorAll("button").forEach(x=>x.classList.remove("on"));b.classList.add("on");cb(b.dataset.v)})}
+segWire("#segModo",v=>mode=v);let dif=6;segWire("#segDif",v=>dif=+v);
+$("#themeBtn").onclick=()=>{const h=document.documentElement;h.dataset.theme=h.dataset.theme==="dark"?"":"dark"};
+$("#play").onclick=start;
+function start(){secret=pickSecret($("#cat").value,mode);tries=dif;row=0;col=0;over=false;grid=Array.from({length:tries},()=>Array(5).fill(""));$("#setup").style.display="none";$("#end").style.display="none";$("#kb").hidden=false;buildBoard();buildKB();status();}
+function status(){$("#status").textContent=`${$("#cat").selectedOptions[0].text} · ${mode==="diario"?"Diário":"Livre"} · Tentativa ${Math.min(row+1,tries)}/${tries}`}
+function buildBoard(){const b=$("#board");b.innerHTML="";for(let r=0;r<tries;r++){const d=document.createElement("div");d.className="row";for(let c=0;c<5;c++){const s=document.createElement("div");s.className="cell";s.id=`c${r}${c}`;d.appendChild(s)}b.appendChild(d)}}
+function buildKB(){const rows=["QWERTYUIOP","ASDFGHJKL","ZXCVBNM"];const k=$("#kb");k.innerHTML="";rows.forEach((r,i)=>{const d=document.createElement("div");d.className="krow";if(i===2){d.appendChild(mkKey("ENTER","wide"))}for(const ch of r){d.appendChild(mkKey(ch,""))}if(i===2){d.appendChild(mkKey("⌫","wide"))}k.appendChild(d)})}
+function mkKey(ch,cls){const b=document.createElement("button");b.className="key "+cls;b.textContent=ch;b.dataset.k=ch;b.onclick=()=>press(ch);return b}
+function press(k){if(over)return;if(k==="ENTER")return submit();if(k==="⌫"){if(col>0){col--;grid[row][col]="";draw()}}else if(col<5&&/^[A-Z]$/.test(k)){grid[row][col]=k;col++;draw(true)}}
+function draw(pop){for(let c=0;c<5;c++){const el=$("#c"+row+c);el.textContent=grid[row][c];if(pop&&grid[row][c]){el.classList.add("filled","pop");setTimeout(()=>el.classList.remove("pop"),120)}}}
+document.addEventListener("keydown",e=>{if($("#kb").hidden)return;const k=e.key.toUpperCase();if(k==="ENTER")press("ENTER");else if(k==="BACKSPACE")press("⌫");else if(/^[A-Z]$/.test(k))press(k.normalize("NFD").replace(/[\u0300-\u036f]/g,""))});
+function submit(){const w=grid[row].join("");if(w.length<5)return toast("Faltam letras! Complete 5 letras.");if(!VALID.has(w))return toast("Essa palavra não vale. Tente outra!");paint(w);if(w===secret)return finish(true);row++;col=0;if(row>=tries)return finish(false);status()}
+function paint(w){const s=secret.split(""),g=w.split(""),res=Array(5).fill("absent"),left={};s.forEach(ch=>left[ch]=(left[ch]||0)+1);for(let i=0;i<5;i++)if(g[i]===s[i]){res[i]="correct";left[g[i]]--}for(let i=0;i<5;i++)if(res[i]!=="correct"&&left[g[i]]>0){res[i]="present";left[g[i]]--}for(let i=0;i<5;i++){const el=$("#c"+row+i);el.classList.add(res[i]);const key=[...document.querySelectorAll(".key")].find(b=>b.dataset.k===g[i]);if(key){const rank={absent:0,present:1,correct:2};const cur=key.classList.contains("correct")?2:key.classList.contains("present")?1:key.classList.contains("absent")?0:-1;if(rank[res[i]]>cur){key.classList.remove("correct","present","absent");key.classList.add(res[i])}}}}
+function finish(win){over=true;const used=row+1;const pts=win?Math.max(0,1000-150*(used-1))+(dif===6?200:dif===4?400:0):0;const e=$("#end");e.style.display="block";e.innerHTML=`<h2>${win?"Você acertou! 🎉":"Quase lá! A palavra era "+secret}</h2><p>Pontos +${pts} · ${used}/${tries} tentativas · ${mode}</p><p><button class="cta" onclick="location.reload()">JOGAR DE NOVO</button></p>`;status()}
+</script>
+</body>
+</html>
